@@ -4,6 +4,21 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.4.0] - 2026-07-26 — Season-Relative/Absolute Aliasing Fix, Return Cached Streams Toggle
+
+### Fixed
+- **Wrong season entirely served for multi-season shows when the absolute episode couldn't be resolved** — When metadata didn't yet map a requested season/episode to its true absolute episode number (a still-airing season, or a metadata gap), the matcher fell back to treating the season-relative episode number as if it were absolute. For any season above 1 this let an unrelated earlier-season batch satisfy the request purely by numeric coincidence — e.g. requesting S8E8 of a long-running donghua returned a completely different show's own "episode 8" from an unrelated "Season 1 Remastered — Episodes 1-21" pack, because 8 falls inside that pack's own range and it carries no season tag to disagree with. Season-relative numbers are now only trusted as absolute for season 1 (where they're identical by definition); for S2+ with no resolved absolute episode, the batch is dropped instead of guessed. Applied consistently across the keep/drop matcher, the weak-donghua `.torrent` verifier, and the pre-cache guard rail.
+- **Multi-season complete packs could mislabel a bonus/spin-off episode as the requested season** — A pack whose title spans a season *range* (e.g. "Season 1-4 + Kanketsu-hen + OVA + Junior High") had that range collapsed to a single inferred season number, which was then silently inherited by every season-tagless file inside the pack — including unrelated bonus content. Concretely, requesting Attack on Titan S1E1 against a pack like this could surface the "Junior High" spin-off's own episode 1 instead of the real season 1 premiere, since both looked equally valid once the spin-off wrongly inherited "Season 1". Per-file season resolution now also reads the file's containing folder name (many packs organize by per-season/per-arc subfolders), and no longer inherits a season from a pack title that names more than one season.
+- **Batch resolver's positional fallback used the wrong episode number** — When a batch's files carry no season markers at all, the resolver's last-resort "guess by position" fallback used the raw season-relative episode instead of the already-resolved effective episode used everywhere else in the same function, which could pick the wrong file for an absolute-numbered pack.
+
+### Added
+- **"Return Cached Streams" setting** (Configure → Performance Tuning) — on by default, matching current behavior. Turn it off to always run a full fresh search instead of serving from the episode cache. A fresh search that comes back empty now also deletes the stale cache entry for that episode, so this doubles as a manual, per-episode fix when an addon is serving a wrong/stale cached stream — no need to wait for the 30-day cache TTL.
+
+### Internal
+- **`scripts/clean-episode-cache.js` scope extended** — previously only detected wrong-episode *open-ended* (no range in the title) packs. Now also catches the season-relative-aliasing bug on *ranged* batches (the exact class of bug described above), and drops any cached batch whose title declares an explicit season disagreeing with the cached request. File-list verification now races three independent sources — itorrents.org, nyaa.si's per-torrent file-list page, and limetorrents.lol's search + detail pages — using whichever responds first with real data, so a single source being down or throttled no longer leaves a pack unverified.
+
+---
+
 ## [2.3.0] - 2026-07-21 — Correct Qualities, Verified-Before-Cache Batches, Truncated .torrent Recovery
 
 ### Fixed
