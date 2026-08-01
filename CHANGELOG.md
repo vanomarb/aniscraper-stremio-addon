@@ -4,6 +4,17 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.5.0] - 2026-08-01 — Bracket-Wrapped Title Fix (Oshi no Ko and similar)
+
+### Fixed
+- **A show whose own canonical title is fully bracket-wrapped (e.g. Kitsu titles Oshi no Ko literally as `"[Oshi no Ko]"`) served completely unrelated shows' torrents instead** — `stripTags()`, meant to strip release-tags like `[SubGroup]` or `(1080p)` off a torrent title, was also applied to the show's own metadata title when building S##E## priority-search patterns. When the entire title happened to be one bracketed span, stripping deleted it outright instead of just the brackets, turning a query like `"Oshi no Ko S01E01"` into a title-less `" S01E01"`. Sent to a provider, that title-less query matches *any* show's own "S01E01" release — confirmed live against TsukiHime, and found already cached in production (17 documents, ~1000 wrong-show torrent entries, all under this one series). `stripTags` now unwraps a title that is itself one full bracket/paren span instead of deleting it, while still stripping ordinary tags that don't cover the whole string. The stale poisoned cache entries for this series were purged (after a full backup) so the next request re-searches with the fix in place.
+- **Same collapse-to-empty bug in `titleSimilarity`'s title normalizer** — a separate, duplicate bracket-stripping regex had the identical flaw: a movie or donghua title that's itself one bracket-wrapped span always scored a similarity of 0, silently matching nothing rather than the wrong thing (movie matching and the donghua weak-candidate fallback both gate on this score). Now reuses the fixed `stripTags` instead of re-implementing bracket stripping a second time.
+
+### Internal
+- **Consolidated-query (TsukiHime/advancedQuery) episode level split into exact vs. loose sub-levels** — the precise `"Title S01E01"` pattern and the bare `"Title 1"` fallback suffix (for releases with no S/E tag at all) were previously OR'd into one query. A low-selectivity bare-number term can swamp a recency-sorted provider's result window and bury every precise match — verified live, an OR'd query returned zero exact S01E01 hits in the top 100 results. The exact pattern is now queried first, with the loose suffix only used as a fallback when it doesn't find enough. The level-building logic was extracted into a pure `buildConsolidatedLevels()` function so this ordering is unit-testable without a network mock.
+
+---
+
 ## [2.4.0] - 2026-07-26 — Season-Relative/Absolute Aliasing Fix, Return Cached Streams Toggle
 
 ### Fixed
