@@ -4,9 +4,10 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
-## [2.5.1] - 2026-08-03 — Season 1 Matching Fix, Strict Source Selection
+## [2.5.1] - 2026-08-03 — Batch Episode Accuracy Fix, Strict Source Selection
 
 ### Fixed
+- **Some batch packs could play a different episode than the one you requested** — the shortcut that maps a requested episode to a file's *position* (using a metadata provider's own episode count) only checked that the picked file's season matched; it never checked that the file's own episode number matched too. On packs where the uploader's file order drifts from the metadata provider's count (extra specials, movies, or spin-off episodes mixed into a "complete" pack), this could serve the wrong episode's file while still labeling it with the episode you asked for. The addon now also checks the picked file's own episode number before trusting it, so what actually plays matches what you requested — not just the label.
 - **A rare mismatch could pick the wrong torrent for Season 1 requests** — A safety check meant for shows with multiple seasons (matching a raw's absolute episode number when the season-relative number doesn't line up) was also running for Season 1, where it isn't needed and could occasionally lock onto the wrong episode's torrent if a metadata provider's own numbering was slightly off. It's now only used where it's actually needed (Season 2 and up).
 
 ### Changed
