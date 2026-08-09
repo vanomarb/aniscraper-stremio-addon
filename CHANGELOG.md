@@ -4,6 +4,17 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.5.2] - 2026-08-09 — Nuvio Metadata Compatibility, English TVDB Descriptions
+
+### Added
+- **Meta responses now carry Nuvio/Cinemeta-compatible key aliases** — some third-party Stremio clients (e.g. Nuvio) read a richer, differently-named set of keys than the minimal Stremio SDK spec (`genres` alongside `genre`, `imdb_id`/`moviedb_id`/`tvdb_id`, `language`, `country`, `runtime`, `slug`, `behaviorHints`, a string-formatted `imdbRating`). These are now added as parallel keys — never replacing the existing Stremio-native fields — and only when a metadata source actually provides the value, so nothing is padded with empty placeholders.
+
+### Fixed
+- **TVDB descriptions for donghua and other non-English-origin shows were returned in the original language instead of English** — the addon already fetched an English translation of the title for these shows, but was discarding that same translation's English overview and falling back to TVDB's default (original-language) description. Descriptions now consistently use the English overview when available, for both TVDB series and movies.
+- **Episodes from TVDB, TMDB, or Kitsu could show up empty in some third-party clients even though Stremio displayed them fine** — video/episode objects built from these three sources only carried each API's native field names (`number`, `name`, `aired`, `image`) and were missing the fields the Stremio video schema itself expects (`id`, `episode`, `released`). Stremio's own client tolerates the gap, but stricter clients like Nuvio don't fall back and rendered no episodes at all. Every episode-producing path (including the paginated fallback fetchers) now emits both key styles side by side.
+
+---
+
 ## [2.5.1] - 2026-08-03 — Batch Episode Accuracy Fix, Strict Source Selection
 
 ### Fixed
