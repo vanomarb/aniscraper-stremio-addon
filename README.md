@@ -12,7 +12,7 @@ Install the addon directly in Stremio using the instance below:
 
 ### Public Version
 **Addon URL:**
-[https://aniscraper.nmtl.app/configure](https://aniscraper.nmtl.app/configure)
+[https://c5541ffce7d3-aniscraper.baby-beamup.club/configure](https://c5541ffce7d3-aniscraper.baby-beamup.club/configure)
 
 # 🎌 Introduction of Anime Scraper Stremio Addon
 
