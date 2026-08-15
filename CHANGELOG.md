@@ -4,6 +4,18 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.6.1] - 2026-08-15 — Absolute-Episode Mapping Fix for Season-Split Donghua IDs
+
+### Fixed
+- **Season-split donghua/anime requests (e.g. `S8E10`) could resolve no absolute episode at all, silently disabling absolute-numbered matching** — `computeAbsoluteEpisode` needed a single metadata source to report contiguous, nonzero episode counts for every season before the one requested. TVDB's contribution was structurally broken: `resolveTvdbId` read per-season counts off `season.episodes`, a field TVDB never populates — it always returns episodes as one flat, series-level list, never nested under each season — so every TVDB-derived season count was silently `0`, for every show, not just one. Reproduced live on *A Record of a Mortal's Journey to Immortality* (`tt12879782`): TMDB reports the whole 206-episode run as a single season (nothing to sum for a season 2-8 request), and TVDB's season 1-8 entries all showed `episodeCount: 0`, so `S8E8`/`S8E10` resolved to `absoluteEpisode: null`. `resolveTvdbId` now derives real per-season counts by grouping TVDB's flat episode list itself, and additionally exposes a direct per-episode `episodeAbsoluteMap` built from TVDB's own `absoluteNumber` field, which `computeAbsoluteEpisode` now prefers over summing counts — more reliable, since it already accounts for specials/bonus episodes interleaved into the regular run (this show's S8E14 carries `absoluteNumber` 190, four higher than a clean sum through season 7 would give).
+- **TsukiHime (and other `advancedQuery` providers) never searched for a donghua's absolute episode number, even once it resolved correctly** — `buildConsolidatedLevels`, the query builder these providers use instead of the season/episode progressive search, had no equivalent of the absolute-numbered "Level 0" query the progressive path already had. It now injects the same level. Confirmed live: the same `S8E8` request went from 0 streams to 1 on TsukiHime after this fix.
+- **Per-episode metadata (titles, overviews, and the season/episode lookup map) came back empty for any show reached via a plain IMDB ID that cross-references into TVDB** — `fetchEpisodesForSource`'s TVDB/TMDB branches used the ID parsed directly off the incoming content string, which is `null` when the request arrives as `tt...` rather than `tvdb:...`/`tmdb:...`, even though the already-resolved metadata object carried the real cross-referenced ID. This silently returned an empty episode list (and therefore an empty season/episode map) for exactly the request shape Stremio sends most often. Both branches now prefer the resolved ID already present on the metadata object.
+
+### Internal
+- `computeAbsoluteEpisode()`, `buildConsolidatedLevels()`, `fetchEpisodesForSource()`, and `resolveTvdbId()` all touched; new offline + live integration coverage in `test/integration/mortal-journey-absolute.test.js`.
+
+---
+
 ## [2.6.0] - 2026-08-13 — Movie Search Overhaul: Right Film, Right Size, No Phantom Episodes
 
 ### Fixed
