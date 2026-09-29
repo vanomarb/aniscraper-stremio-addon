@@ -4,6 +4,19 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.6.4] - 2026-09-28 — Soul Land Off-by-One: When the Catalog Splits an Episode
+
+### Fixed
+- **Soul Land episodes 241-264 served the next episode** — reported against catalog E263 (`tvdb:342329` / `tmdb:76572` / `tt8948436`, the 2018 donghua 斗罗大陆), which returned the release numbered 263. TVDB, TMDB and Cinemeta all split episode 240 into two entries (TMDB titles them *Episode 240 Part A* / *Part B*), so from E241 on every catalog number is one ahead of the numbering release groups use: catalog E263 is released as 262, and catalog E264, the finale, is released as 263. Not a regression — the addon has never had a way to express this, and the 2.6.1-2.6.3 absolute-episode work does not touch a single flat season, where the request's own number was already taken as the release number. The show's metadata is internally consistent (TVDB `absoluteNumber` runs 1-264 with no gaps), so nothing could derive the shift from the sources.
+
+### Changed
+- **Per-show catalog → release episode shifts can be declared in `src/data/show-overrides.json`** as `episodeMap` ranges (`{ season, start, end, offset }`, `end` optional for an airing show). The request is translated once, at the top of `getStreams`, so queries, matching, batch file selection and resolve URLs all use the release number. The episode-cache key moves with it: cache hits are keyed by content id and returned without re-matching, so the catalog-numbered key would have kept serving the old answer for its 30-day TTL. Existing documents under the release-numbered key already hold the right episode and are reused as-is — no purge needed.
+
+### Known limitation
+- Catalog E241 (*Episode 240 Part B*) maps to release 240 and returns both parts: tlh1138 publishes the split as `240` and `240 Part 2`, and the title parser reads both as episode 240. The Director's Cut (catalog S0E1, released as `264 - Movie`) is not mapped.
+
+---
+
 ## [2.6.3] - 2026-08-25 — Two Ways to Number an Episode: Cross-Source Metadata and Season Mapping
 
 ### Fixed
