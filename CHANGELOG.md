@@ -4,6 +4,14 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.6.5] - 2026-10-02 — The Missing 之: When a Romanization Drops a Particle
+
+### Fixed
+- **Renegade Immortal Movie 2 returned no streams** (`tmdb:1599191`, *Battle of the Immortal Slayer* / 仙逆剧场版 弑仙之战), even though AnimeTosho and Nyaa both index it. Metadata resolved correctly through TMDB; the releases were found and then dropped by the movie arc gate. TMDB romanizes the title "Shì Xiān Zhàn", leaving out 之, while the releases spell it "Shi Xian Zhi Zhan". The gate rejects a release that carries words no alias accounts for (that is how it tells a franchise's films apart), and read the leftover "zhi" as the name of a different film. `zhi`, the pinyin of the Chinese "of" particle and the counterpart of Japanese "no", is now a title stopword. Movie 1 (*Battle of the Gods*, 神临之战) is still rejected for a Movie 2 request.
+- **Pinyin with tone marks was rewritten as roman numerals** — "Xiān" became "11ān" in the generated search queries, which then always came back empty. The numeral matcher used `\b`, which only understands ASCII and so sees a word boundary between "Xi" and "ā". It now uses Unicode-aware boundaries.
+
+---
+
 ## [2.6.4] - 2026-09-28 — Soul Land Off-by-One: When the Catalog Splits an Episode
 
 ### Fixed
