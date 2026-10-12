@@ -4,6 +4,17 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.6.6] - 2026-10-12 — Soul Land and Soul Land 2: When a Sequel Is Its Own Show
+
+### Fixed
+- **Soul Land 2 showed Soul Land 1 episodes, and Soul Land 1 showed Soul Land 2 episodes.** The two shows are listed separately and both number their episodes from 1, so episode 100 exists in both. The only way to tell them apart is the "2" in the title, and the addon was ignoring it. A Soul Land 2 request on Nyaa could return Soul Land 1's complete packs, and a Soul Land 1 request could return Soul Land 2 releases. Each show now returns only its own episodes, on every source.
+- **Later Soul Land 2 episodes were missing some releases.** Releases named "Douluo Dalu II" were read as season 2, but Soul Land 2 is listed as a single season. They now count as Soul Land 2 and show up as normal results.
+
+### Changed
+- **Numbered sequels are now kept apart from the original series.** This applies to any show, not just Soul Land. Shows whose sequels are listed as later seasons of the same entry still work as before, and so do titles where the number is part of the name, like "Lupin III". "Season 2" labels on releases are not treated as a sequel, because some groups split the original Soul Land into seasons.
+
+---
+
 ## [2.6.5] - 2026-10-02 — The Missing 之: When a Romanization Drops a Particle
 
 ### Fixed
