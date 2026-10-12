@@ -4,6 +4,36 @@ All notable changes to the AniScraper (formerly Nyaa Stremio Addon) are document
 
 ---
 
+## [2.6.7] - 2026-10-12 — Catalog Only: AniScraper as AIOMetadata's Meta Source
+
+### Added
+- **AniScraper can now be the metadata source for a catalog-only AIOMetadata install.** With AIOMetadata's *Catalog Mode Only* turned on, Stremio asks other addons for each catalog item's detail page and episode list. AIOMetadata's MAL catalogs name a show by MyAnimeList id, and AniScraper did not accept those ids. Renegade Immortal, for example, arrives as `mal:55809`, and no TVDB, TMDB or IMDb entry exists for it to fall back on. AniScraper now accepts `mal:`, `anilist:`, `anidb:` and `tvmaze:` ids for both metadata and streams. It maps each one to the matching Kitsu entry (`mal:55809` → `kitsu:48036`) or, for TVmaze, to TVDB or IMDb. The response keeps the id Stremio asked for. Episodes use the mapped Kitsu ids, so other stream addons that read Kitsu ids can serve them as well.
+- **Search.** AniScraper now shows up in Stremio's search bar, with results from Kitsu and from TMDB's Japanese, Chinese and Korean animation. Results use the IMDb id where one is known, as AIOMetadata's search does, and otherwise their `kitsu:` or `tmdb:` id. Later-season entries keep their `kitsu:` id so each season opens on its own episodes. Search is on by default. The toggle is at the top of Optional Settings, and only turning it off changes the config URL (`search=false`). Existing installs keep working; the search row appears after reinstalling or reconfiguring.
+- **Detail pages now have the same fields as AIOMetadata's, filled from more sources.** Every page has the same set of fields as AIOMetadata's IMDb-mode page, in the same order: Cinemeta's fields plus keywords, landscape art, cast with photos, age rating, season posters, and IDs for IMDb, TMDB, TVDB, MAL, Kitsu, AniList and AniDB. Values come from Cinemeta first. Then TMDB, TVDB and Kitsu fill in only what is still missing, and a source isn't asked at all once nothing is left. Titles are always English, never the romanised title. Renegade Immortal now shows "Renegade Immortal" (it showed "Xian Ni"), along with its IMDb rating, trailers, logo, cast, keywords and TV-14 rating. Its episodes have real titles and air dates ("Leaving Home", 2023-09-25), and episodes that haven't aired yet are marked as such.
+- **Shows that aren't linked to IMDb or TMDB anywhere are now found by title.** For example, Renegade Immortal has no IMDb, TMDB or TVDB entry in any ID-mapping list. AniScraper searches TMDB for an exact title match from the same year and takes the IMDb and TVDB IDs from that entry.
+- **Sequel seasons describe the season, not the whole series.** A MAL or Kitsu entry for one season of a longer show takes its name, synopsis, poster and dates from Kitsu ("Jujutsu Kaisen Season 2"). Its episodes take their titles from that season.
+- **Long shows list every episode.** One Piece now lists all 1,179 episodes, not just the first 500 that Kitsu has. Episodes keep their Kitsu IDs so streams work unchanged.
+- **Directors and fuller cast.** Series directors were almost always missing, because TMDB credits a TV show's directors per episode. The director now comes from TMDB's series-level credit (Frieren → Keiichiro Saito, Jujutsu Kaisen → Shota Goshozono), and cast covers the whole run, not just the latest season. TVDB fills in cast, director and writer when no other source has them. Names that aren't in English are left out, as with titles.
+- **Episodes without a thumbnail show the show's poster** instead of an empty frame, using the poster you picked in Art Sources. This also covers episodes that only had a dead image link. Cinemeta gives a metahub thumbnail URL for every episode, but metahub only has the image once the episode airs, so today's and upcoming episodes showed blank frames. Recent and upcoming episodes' thumbnails are now checked, and a missing one falls back to TMDB's or TVDB's still, then the poster.
+- **Anime movies get a detail page.** Movie metadata (`mal:32281`, `tmdb:372058`, `tt5311514`) used to be rejected. It is now served, and playing the movie requests its streams directly.
+- **Art Sources.** With search on, Optional Settings has an Art Sources panel. It picks the poster, background and logo source (Auto, Cinemeta, TMDB, TVDB, Fanart.tv or Kitsu) for Series, Movies and Anime, and applies to both search results and their pages. It previews a real show as you hover each source. If a source has no image for a show, Auto's is used instead. Only slots changed from Auto are added to the config URL (`art=…`).
+- **Fanart.tv artwork.** Fanart.tv is now an Art Sources option, and Metadata API Keys has a field for its API key, checked before install like the other keys. If Fanart is picked with no key configured, the panel warns and offers a shortcut to the key field. Until a key is added, Fanart picks fall back to Auto. When the server has its own Fanart.tv key (`FANART_API_KEY`), the field says so. That key is never sent to the page.
+- **Metadata can be switched off.** A new Metadata toggle in Optional Settings, on by default, controls AniScraper's own detail pages. Turned off, the addon only returns streams: the manifest stops offering metadata, and stream requests skip the metadata lookups (Cinemeta, TMDB, TVDB, Kitsu, artwork), saving network requests. Only turning it off changes the config URL (`meta=false`).
+- Stream requests of type `anime` are accepted. Before, they were refused with "Invalid type".
+
+### Changed
+- Loading a long show's episode list from Kitsu and TMDB is about 3–4× faster. Pages and seasons are now fetched several at a time instead of one by one.
+- A show's detail page is now cached separately from the data used to find streams. A long show's page is large (about 1 MB for One Piece), and stream lookups no longer have to load it.
+
+### Fixed
+- **Detail pages opened from the cache were broken.** The second time a show's page was opened, AniScraper returned its internal cache record, which has no id, name, type or poster, instead of the page itself. The cache now stores the full page and serves it.
+- **Kitsu ratings showed 10.0 for almost every show.** Kitsu's 0–100 rating was converted to 0–10 and then doubled again, so anything rated above 50% hit the 10.0 cap. Renegade Immortal, rated 79%, showed 10.0 and now shows 7.9.
+- **Airing Kitsu shows now get new-episode notifications.** Kitsu's `current` status wasn't recognised as "still airing".
+- **Each episode of a Kitsu show was cached as a separate series.** The cache key for `kitsu:ID:EP` kept the episode number, so every episode request rebuilt the whole show's episode list. All episodes now share one entry with the show's detail page.
+- **What's New ran off the screen with a long changelog.** Its list could grow past the window and push the button out of reach. The window now stays on screen and the list scrolls inside it.
+
+---
+
 ## [2.6.6] - 2026-10-12 — Soul Land and Soul Land 2: When a Sequel Is Its Own Show
 
 ### Fixed
